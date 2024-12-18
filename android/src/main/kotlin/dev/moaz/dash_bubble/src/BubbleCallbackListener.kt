@@ -1,5 +1,6 @@
 package dev.moaz.dash_bubble.src
 
+import android.util.Log
 import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.torrydo.floatingbubbleview.FloatingBubble
