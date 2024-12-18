@@ -13,6 +13,7 @@ import dev.moaz.dash_bubble.R
 class BubbleService : FloatingBubbleService() {
     private lateinit var bubbleOptions: BubbleOptions
     private lateinit var notificationOptions: NotificationOptions
+    private lateinit var mActivity: Class<*>
 
     /** This method is called when the service is started
      * It initializes the bubble with the options passed to from the intent and starts the service.
@@ -20,6 +21,7 @@ class BubbleService : FloatingBubbleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         bubbleOptions = intent?.getParcelableExtra(Constants.BUBBLE_OPTIONS_INTENT_EXTRA)!!
         notificationOptions = intent.getParcelableExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA)!!
+        mActivity = intent.getSerializableExtra(Constants.ACTIVITY_INTENT_EXTRA) as Class<*>
 
         showBubbles()
         showNotification()
@@ -88,7 +90,7 @@ class BubbleService : FloatingBubbleService() {
             .opacity(bubbleOptions.opacity!!.toFloat())
             .behavior(BubbleBehavior.values()[bubbleOptions.closeBehavior!!])
             .distanceToClose(bubbleOptions.distanceToClose!!.toInt())
-            .addFloatingBubbleListener(BubbleCallbackListener(this))
+            .addFloatingBubbleListener(BubbleCallbackListener(this, mActivity, applicationContext))
     }
 
     /** This method defines the notification configuration and shows it. */

@@ -4,8 +4,10 @@ import android.content.Intent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.torrydo.floatingbubbleview.FloatingBubble
 
-class BubbleCallbackListener(bubbleService: BubbleService) : FloatingBubble.Listener {
+class BubbleCallbackListener(bubbleService: BubbleService, activity: Class<*>, context: Context) : FloatingBubble.Listener {
     private val bubbleService = bubbleService
+    private val mActivity = activity
+    private val applicationContext = context
 
     /** This method is called when the bubble is tapped.
      * It sends a broadcast to the app to handle the tap.
@@ -13,8 +15,9 @@ class BubbleCallbackListener(bubbleService: BubbleService) : FloatingBubble.List
     override fun onClick() {
         val intent = Intent(Constants.ON_TAP)
         LocalBroadcastManager.getInstance(bubbleService).sendBroadcast(intent)
+        Log.d("BroadcastListener", "Bubble tapped!")
 
-        // Helpers.bringAppToForeground(applicationContext);
+        Helpers.bringAppToForeground(mActivity, applicationContext);
     }
 
     /** This method is called when the bubble is tapped down (pressed).

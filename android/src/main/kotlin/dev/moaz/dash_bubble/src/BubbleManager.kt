@@ -114,6 +114,7 @@ class BubbleManager(private val activity: Activity) {
         val intent = Intent(activity, BubbleService::class.java)
         intent.putExtra(Constants.BUBBLE_OPTIONS_INTENT_EXTRA, bubbleOptions)
         intent.putExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA, notificationOptions)
+        intent.putExtra(Constants.ACTIVITY_INTENT_EXTRA, activity::class.java)
 
         startForegroundService(activity, intent)
 

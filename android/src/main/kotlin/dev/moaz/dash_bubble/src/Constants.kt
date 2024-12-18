@@ -8,6 +8,7 @@ class Constants {
         const val POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE = 8000
         const val BUBBLE_OPTIONS_INTENT_EXTRA = "bubbleOptionsIntentExtra"
         const val NOTIFICATION_OPTIONS_INTENT_EXTRA = "notificationOptionsIntentExtra"
+        const val ACTIVITY_INTENT_EXTRA = "activityIntentExtra"
         const val ERROR_TAG = "DASH_BUBBLE"
 
         // Bubble Callbacks
