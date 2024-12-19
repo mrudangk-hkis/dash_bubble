@@ -18,6 +18,7 @@ class Helpers {
            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
            intent.action = Intent.ACTION_MAIN
            intent.addCategory(Intent.CATEGORY_LAUNCHER)
+           intent.putExtra("routeName", "/dashboardScreen")
            context.startActivity(intent)
        }
         /**
