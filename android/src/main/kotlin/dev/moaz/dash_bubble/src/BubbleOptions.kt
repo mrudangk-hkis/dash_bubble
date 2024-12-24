@@ -32,6 +32,9 @@ data class BubbleOptions(
     val enableAnimateToEdge: Boolean?,
     val enableBottomShadow: Boolean?,
     val keepAliveWhenAppExit: Boolean?,
+    val socketUrl: String?,
+    val userToken: String?,
+    val userId: Int?
 ) : Parcelable {
     companion object {
         /**
@@ -52,7 +55,11 @@ data class BubbleOptions(
                 call.argument(Constants.DISTANCE_TO_CLOSE),
                 call.argument(Constants.ENABLE_ANIMATE_TO_EDGE),
                 call.argument(Constants.ENABLE_BOTTOM_SHADOW),
-                call.argument(Constants.KEEP_ALIVE_WHEN_APP_EXIT)
+                call.argument(Constants.KEEP_ALIVE_WHEN_APP_EXIT),
+                call.argument(Constants.SOCKET_URL),
+                call.argument(Constants.USER_TOKEN),
+                call.argument(Constants.USER_ID),
+
             )
         }
     }

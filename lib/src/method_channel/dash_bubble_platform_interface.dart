@@ -62,6 +62,8 @@ abstract class DashBubblePlatform extends PlatformInterface {
     Function(double x, double y)? onTapDown,
     Function(double x, double y)? onTapUp,
     Function(double x, double y)? onMove,
+    String? socketUrl,
+    String? userToken,
   }) async {
     throw UnimplementedError('startBubble() has not been implemented.');
   }

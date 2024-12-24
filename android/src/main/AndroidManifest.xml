@@ -5,9 +5,13 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
 
-    <application>
+    <application
+        android:usesCleartextTraffic="true"
+        >
+
        <service
         android:name=".src.BubbleService"
         android:foregroundServiceType="specialUse">
@@ -15,6 +19,7 @@
         android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" 
         android:value="By using a foreground service, we can ensure that the bubble remains visible and accessible to the user even when they switch to other apps."/>  <!-- optional -->
      </service>
+
     </application>
 
 </manifest>

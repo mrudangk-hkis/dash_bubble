@@ -37,20 +37,31 @@ class BubbleOptions {
   /// Whether to keep the bubble alive when the app is closed or not.
   final bool keepAliveWhenAppExit;
 
-  BubbleOptions({
-    this.bubbleIcon,
-    this.closeIcon,
-    this.startLocationX = 0,
-    this.startLocationY = 200,
-    this.bubbleSize = 60,
-    this.opacity = 1,
-    this.enableClose = true,
-    this.closeBehavior = CloseBehavior.following,
-    this.distanceToClose = 100,
-    this.enableAnimateToEdge = true,
-    this.enableBottomShadow = true,
-    this.keepAliveWhenAppExit = false,
-  })  : assert(
+  /// socket url if we want to connect and listen to socket events in background
+  final String? socketUrl;
+
+  /// if we are sending socket then we need user token
+  final String? userToken;
+
+  final int? userId;
+
+  BubbleOptions(
+      {this.bubbleIcon,
+      this.closeIcon,
+      this.startLocationX = 0,
+      this.startLocationY = 200,
+      this.bubbleSize = 60,
+      this.opacity = 1,
+      this.enableClose = true,
+      this.closeBehavior = CloseBehavior.following,
+      this.distanceToClose = 100,
+      this.enableAnimateToEdge = true,
+      this.enableBottomShadow = true,
+      this.keepAliveWhenAppExit = false,
+      this.socketUrl,
+      this.userToken,
+      this.userId})
+      : assert(
           bubbleSize >= 0,
           'bubbleSize must be greater than or equal to 0',
         ),
@@ -73,6 +84,9 @@ class BubbleOptions {
       'enableAnimateToEdge': enableAnimateToEdge,
       'enableBottomShadow': enableBottomShadow,
       'keepAliveWhenAppExit': keepAliveWhenAppExit,
+      'socketUrl': socketUrl,
+      'userToken': userToken,
+      'userId': userId
     };
   }
 }

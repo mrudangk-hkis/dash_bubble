@@ -42,6 +42,8 @@ class MockDashBubblePlatform
     Function(double x, double y)? onTapDown,
     Function(double x, double y)? onTapUp,
     Function(double x, double y)? onMove,
+    String? socketUrl,
+    String? userToken,
   }) {
     throw UnimplementedError();
   }

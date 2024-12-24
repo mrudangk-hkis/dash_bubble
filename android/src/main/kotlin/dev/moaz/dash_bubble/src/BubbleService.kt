@@ -2,6 +2,7 @@ package dev.moaz.dash_bubble.src
 
 import android.app.Notification
 import android.content.Intent
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.torrydo.floatingbubbleview.BubbleBehavior
 import com.torrydo.floatingbubbleview.FloatingBubble
@@ -14,6 +15,8 @@ class BubbleService : FloatingBubbleService() {
     private lateinit var bubbleOptions: BubbleOptions
     private lateinit var notificationOptions: NotificationOptions
     private lateinit var mActivity: Class<*>
+
+    private var socketManager: SocketManager? = null
 
     /** This method is called when the service is started
      * It initializes the bubble with the options passed to from the intent and starts the service.
@@ -67,6 +70,23 @@ class BubbleService : FloatingBubbleService() {
             R.drawable.ic_close_bubble
         )
 
+
+        if (bubbleOptions.socketUrl != null && bubbleOptions.userToken != null) {
+            Log.d("Socket URL L-->", bubbleOptions.socketUrl.toString())
+            Log.d("Auth URL L-->", bubbleOptions.userToken.toString())
+            Log.d("UserID L-->" , bubbleOptions.userId.toString())
+            // Initialize socket manager
+            socketManager = SocketManager(bubbleOptions.socketUrl.toString(), bubbleOptions.userToken.toString())
+
+            // Connect the socket
+            socketManager?.connect()
+
+            socketManager?.on("open_app:${bubbleOptions.userId}") {
+                Log.d("Socket Listener L-->" ,  "Open_App_${bubbleOptions.userId}")
+                Helpers.bringAppToForeground(mActivity , applicationContext)
+            }
+        };
+
         return FloatingBubble.Builder(this)
             .bubble(
                 bubbleIcon,
@@ -95,8 +115,7 @@ class BubbleService : FloatingBubbleService() {
 
     /** This method defines the notification configuration and shows it. */
     private fun showNotification() {
-        val notificationTitle =
-            notificationOptions.title ?: Helpers.getApplicationName(applicationContext)
+        val notificationTitle = "You are online"
 
         val notificationIcon = Helpers.getDrawableId(
             applicationContext,

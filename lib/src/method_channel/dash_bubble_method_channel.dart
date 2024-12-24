@@ -78,6 +78,8 @@ class MethodChannelDashBubble extends DashBubblePlatform {
     Function(double x, double y)? onTapDown,
     Function(double x, double y)? onTapUp,
     Function(double x, double y)? onMove,
+    String? socketUrl,
+    String? userToken,
   }) async {
     methodChannel.setMethodCallHandler((call) async {
       switch (call.method) {
