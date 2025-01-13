@@ -37,3 +37,17 @@ class NotificationOptions {
     };
   }
 }
+
+class UpdateOrder {
+  final int? id;
+  final String? userToken;
+
+  UpdateOrder({this.id, required this.userToken});
+
+  Map<String, dynamic> toMap() {
+    return {
+      'orderId': id,
+      'userToken': userToken,
+    };
+  }
+}

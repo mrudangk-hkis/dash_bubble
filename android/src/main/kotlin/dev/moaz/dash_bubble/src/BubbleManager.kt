@@ -7,13 +7,21 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.requestPermissions
+import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.startForegroundService
 import com.torrydo.floatingbubbleview.FloatingBubbleService
 
 /** BubbleManager is the main class that you will use to manage the bubble. */
 class BubbleManager(private val activity: Activity) {
+
+    private var locationManager: LocationManager? = LocationManager(activity.applicationContext)
+
+
+
+
 
     /** Request permission to draw over other apps (overlay permission).
      * @return true if permission is granted, null if the permission is being requested.
@@ -88,6 +96,34 @@ class BubbleManager(private val activity: Activity) {
         } else true
     }
 
+    /** Request location permissions (both fine and coarse location). */
+    fun requestLocationPermission(): Boolean {
+        if (hasLocationPermission()) return true
+
+        // For Android versions >= M (API level 23)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Request both fine and coarse location permissions
+            ActivityCompat.requestPermissions(
+                activity,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                Constants.LOCATION_PERMISSION_REQUEST_CODE
+            )
+            return false
+        }
+        return true
+    }
+
+    /** Check if location permission is granted. */
+    fun hasLocationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // Check for both fine and coarse location permissions
+            ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true // Permission is automatically granted for versions before M
+        }
+    }
+
     /** Check if the bubble is running or not.
      * @return true if the bubble is running, false if not.
      */
@@ -108,6 +144,7 @@ class BubbleManager(private val activity: Activity) {
         notificationOptions: NotificationOptions
     ): Boolean {
         if (!hasOverlayPermission()) return false
+        if (!hasLocationPermission()) return false
 
         if (isRunning()) return false
 
@@ -115,6 +152,8 @@ class BubbleManager(private val activity: Activity) {
         intent.putExtra(Constants.BUBBLE_OPTIONS_INTENT_EXTRA, bubbleOptions)
         intent.putExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA, notificationOptions)
         intent.putExtra(Constants.ACTIVITY_INTENT_EXTRA, activity::class.java)
+
+        locationManager?.startFetchingLocation(null , bubbleOptions.userToken );
 
         startForegroundService(activity, intent)
 
@@ -127,10 +166,39 @@ class BubbleManager(private val activity: Activity) {
      * If the bubble is not running, it will return false.
      */
     fun stopBubble(): Boolean {
+        Log.d("stopBubble" ,  "Stopping")
+
+        try {
+
+            Log.d("stopBubble" ,  "Tryinggggggggggggg")
+
+
+            locationManager?.stopFetchingLocation()
+
+        } catch (e: Error) {
+            Log.d("stopBubble" ,  "Error while Stoping $e")
+        }
+
+
         if (!FloatingBubbleService.isRunning()) return false
 
         val intent = Intent(activity, BubbleService::class.java)
         activity.stopService(intent)
+
+
+        return true
+    }
+
+    /** Function to update the order ID and print it. */
+    fun updateOrder(updateOrder: UpdateOrder): Boolean {
+
+
+
+        locationManager?.startFetchingLocation(
+            updateOrder.id , updateOrder.authToken
+
+        )
+        Log.d("Update order Id" ,  "${updateOrder.id}")
 
         return true
     }

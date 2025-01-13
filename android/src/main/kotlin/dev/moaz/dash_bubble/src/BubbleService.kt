@@ -17,17 +17,21 @@ class BubbleService : FloatingBubbleService() {
     private lateinit var mActivity: Class<*>
 
     private var socketManager: SocketManager? = null
+//    private var locationManager: LocationManager? = null
 
     /** This method is called when the service is started
      * It initializes the bubble with the options passed to from the intent and starts the service.
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+//        locationManager = LocationManager(applicationContext)
         bubbleOptions = intent?.getParcelableExtra(Constants.BUBBLE_OPTIONS_INTENT_EXTRA)!!
         notificationOptions = intent.getParcelableExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA)!!
         mActivity = intent.getSerializableExtra(Constants.ACTIVITY_INTENT_EXTRA) as Class<*>
 
         showBubbles()
         showNotification()
+
+
 
         return super.onStartCommand(intent, flags, startId)
     }
@@ -85,6 +89,16 @@ class BubbleService : FloatingBubbleService() {
                 Log.d("Socket Listener L-->" ,  "Open_App_${bubbleOptions.userId}")
                 Helpers.bringAppToForeground(mActivity , applicationContext)
             }
+
+//            Log.d("LocationManager" ,  "calling that function")
+
+
+//                locationManager?.startFetchingLocation(null , bubbleOptions.userToken)
+
+
+
+
+
         };
 
         return FloatingBubble.Builder(this)
@@ -143,4 +157,5 @@ class BubbleService : FloatingBubbleService() {
 
         if (!bubbleOptions.keepAliveWhenAppExit!!) stopSelf()
     }
+
 }

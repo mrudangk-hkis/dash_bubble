@@ -126,6 +126,11 @@ class MethodChannelDashBubble extends DashBubblePlatform {
     return (await _invokeMethod(Constants.stopBubble));
   }
 
+  @override
+  Future<bool> updateOrder(UpdateOrder updateOrder) async {
+    return (await _invokeMethod(Constants.updateOrder, updateOrder.toMap()));
+  }
+
   /// Logs an error message.
   void logError(String message) {
     log(message, name: Constants.errorLogName);

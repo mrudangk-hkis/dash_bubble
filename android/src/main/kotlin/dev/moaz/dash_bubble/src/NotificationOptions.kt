@@ -39,3 +39,19 @@ data class NotificationOptions(
         }
     }
 }
+
+@Parcelize
+data class UpdateOrder(
+    val id: Int?,
+    val authToken:  String?,
+
+) : Parcelable{
+    companion object{
+        fun fromMethodCall(call: MethodCall): UpdateOrder {
+            return  UpdateOrder(
+                call.argument(Constants.ORDER_ID),
+                call.argument(Constants.USER_TOKEN)
+            )
+        }
+    }
+}

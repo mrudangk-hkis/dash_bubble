@@ -10,6 +10,7 @@ import dev.moaz.dash_bubble.src.BubbleOptions
 import dev.moaz.dash_bubble.src.Constants
 import dev.moaz.dash_bubble.src.Helpers
 import dev.moaz.dash_bubble.src.NotificationOptions
+import dev.moaz.dash_bubble.src.UpdateOrder
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -72,6 +73,9 @@ class DashBubblePlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
                     )
                 )
                 Constants.STOP_BUBBLE -> result.success(bubbleManager.stopBubble())
+                Constants.UPDATE_ORDER_ID -> result.success(bubbleManager.updateOrder(
+                    UpdateOrder.fromMethodCall(call)
+                ))
                 else -> result.notImplemented()
             }
         } catch (e: Exception) {

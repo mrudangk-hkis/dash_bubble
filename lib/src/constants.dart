@@ -25,4 +25,5 @@ class Constants {
   static const onTapDown = 'onTapDown';
   static const onTapUp = 'onTapUp';
   static const onMove = 'onMove';
+  static const updateOrder = 'updateOrder';
 }

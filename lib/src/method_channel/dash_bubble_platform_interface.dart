@@ -72,4 +72,8 @@ abstract class DashBubblePlatform extends PlatformInterface {
   Future<bool> stopBubble() async {
     throw UnimplementedError('stopBubble() has not been implemented.');
   }
+
+  Future<bool> updateOrder(UpdateOrder updateOrder) async {
+    throw UnimplementedError('updateOrderId() has not been implemented.');
+  }
 }

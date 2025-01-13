@@ -27,6 +27,8 @@ class Constants {
         const val IS_RUNNING = "isRunning"
         const val START_BUBBLE = "startBubble"
         const val STOP_BUBBLE = "stopBubble"
+        const val LOCATION_PERMISSION_REQUEST_CODE = 1001
+        const val UPDATE_ORDER_ID = "updateOrder"
 
         // Bubble Options Arguments
         const val BUBBLE_ICON = "bubbleIcon"
@@ -44,6 +46,7 @@ class Constants {
         const val SOCKET_URL = "socketUrl"
         const val USER_TOKEN = "userToken"
         const val USER_ID = "userId"
+        const val ORDER_ID = "orderId"
 
         // Notification Options Arguments
         const val NOTIFICATION_ID = "notificationId"

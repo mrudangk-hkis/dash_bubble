@@ -123,4 +123,8 @@ class DashBubble {
   Future<bool> stopBubble() {
     return DashBubblePlatform.instance.stopBubble();
   }
+
+  Future<bool> updateOrder(UpdateOrder orderId) {
+    return DashBubblePlatform.instance.updateOrder(orderId);
+  }
 }

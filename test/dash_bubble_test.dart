@@ -52,6 +52,11 @@ class MockDashBubblePlatform
   Future<bool> stopBubble() {
     throw UnimplementedError();
   }
+
+  @override
+  Future<bool> updateOrder(UpdateOrder orderId) {
+    throw UnimplementedError();
+  }
 }
 
 void main() {
