@@ -41,13 +41,16 @@ class NotificationOptions {
 class UpdateOrder {
   final int? id;
   final String? userToken;
+  final String? orderManagementBaseURL;
 
-  UpdateOrder({this.id, required this.userToken});
+  UpdateOrder(
+      {this.id, required this.userToken, required this.orderManagementBaseURL});
 
   Map<String, dynamic> toMap() {
     return {
       'orderId': id,
       'userToken': userToken,
+      "orderUrl": orderManagementBaseURL
     };
   }
 }

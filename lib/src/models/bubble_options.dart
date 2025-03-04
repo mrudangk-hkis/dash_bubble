@@ -43,6 +43,8 @@ class BubbleOptions {
   /// if we are sending socket then we need user token
   final String? userToken;
 
+  final String? orderManagementBaseURL;
+
   final int? userId;
 
   BubbleOptions(
@@ -60,6 +62,7 @@ class BubbleOptions {
       this.keepAliveWhenAppExit = false,
       this.socketUrl,
       this.userToken,
+      this.orderManagementBaseURL,
       this.userId})
       : assert(
           bubbleSize >= 0,
@@ -86,7 +89,8 @@ class BubbleOptions {
       'keepAliveWhenAppExit': keepAliveWhenAppExit,
       'socketUrl': socketUrl,
       'userToken': userToken,
-      'userId': userId
+      'userId': userId,
+      "orderUrl": orderManagementBaseURL
     };
   }
 }

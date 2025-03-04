@@ -1,16 +1,27 @@
 package dev.moaz.dash_bubble.src
 
+import android.content.Context
 import android.util.Log
 import io.socket.client.IO
 import io.socket.client.Socket
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class SocketManager(private val socketUrl: String, private val authToken: String) {
 
     private var socket: Socket? = null
 
-    fun connect(): Socket? {
+    fun connect(userId: Int?, mActivity: Class<*>, applicationContext: Context): Socket? {
         try {
+            var retry = 0
+            val reconnectionAttempts = 10
+
             val options = IO.Options()
+            options.reconnection = true
+            options.reconnectionAttempts = reconnectionAttempts
+            options.reconnectionDelay = 10000
             options.extraHeaders = mapOf("Authorization" to listOf(authToken))
 
             options.transports = arrayOf("websocket")
@@ -18,11 +29,30 @@ class SocketManager(private val socketUrl: String, private val authToken: String
             socket?.connect()
 
             socket?.on(Socket.EVENT_CONNECT) {
+                retry = 0
                 Log.d("Socket", "Socket Connected From Kotlin!!!!");
             }
 
+            socket?.on("open_app:${userId}") {
+                Log.d("Socket Listener L-->", "Open_App_${userId}")
+                Helpers.bringAppToForeground(mActivity, applicationContext)
+            }
+
             socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
-                Log.e("SocketManager", "Connection error: ${args[0]}")
+                retry++
+                Log.e("SocketManager", "Retry count: $retry")
+                for (arg in args) {
+                    Log.e("SocketManager", "Connection error: $arg")
+                }
+                if (retry >= reconnectionAttempts) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        if (socket?.connected() == true) {
+                            this.cancel()
+                            return@launch
+                        }
+                        connect(userId, mActivity, applicationContext)
+                    }
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
