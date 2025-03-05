@@ -16,13 +16,6 @@ import com.torrydo.floatingbubbleview.FloatingBubbleService
 
 /** BubbleManager is the main class that you will use to manage the bubble. */
 class BubbleManager(private val activity: Activity) {
-
-    private var locationManager: LocationManager? = LocationManager(activity.applicationContext)
-
-
-
-
-
     /** Request permission to draw over other apps (overlay permission).
      * @return true if permission is granted, null if the permission is being requested.
      *
@@ -153,9 +146,14 @@ class BubbleManager(private val activity: Activity) {
         intent.putExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA, notificationOptions)
         intent.putExtra(Constants.ACTIVITY_INTENT_EXTRA, activity::class.java)
 
-        locationManager?.startFetchingLocation(null , bubbleOptions.userToken );
-
         startForegroundService(activity, intent)
+
+        val locationServiceIntent = Intent(activity, LocationService::class.java)
+        locationServiceIntent.action = LocationService.ACTION_START_UPDATE
+        locationServiceIntent.putExtra("url",bubbleOptions.orderManagementUrl)
+        locationServiceIntent.putExtra("token",bubbleOptions.userToken)
+
+        startForegroundService(activity, locationServiceIntent)
 
         return true
     }
@@ -168,37 +166,28 @@ class BubbleManager(private val activity: Activity) {
     fun stopBubble(): Boolean {
         Log.d("stopBubble" ,  "Stopping")
 
-        try {
-
-            Log.d("stopBubble" ,  "Tryinggggggggggggg")
-
-
-            locationManager?.stopFetchingLocation()
-
-        } catch (e: Error) {
-            Log.d("stopBubble" ,  "Error while Stoping $e")
-        }
-
+        val locationServiceIntent = Intent(activity, LocationService::class.java)
+        activity.stopService(locationServiceIntent)
 
         if (!FloatingBubbleService.isRunning()) return false
 
         val intent = Intent(activity, BubbleService::class.java)
         activity.stopService(intent)
 
-
         return true
     }
 
     /** Function to update the order ID and print it. */
     fun updateOrder(updateOrder: UpdateOrder): Boolean {
-
-
-
-        locationManager?.startFetchingLocation(
-            updateOrder.id , updateOrder.authToken
-
-        )
         Log.d("Update order Id" ,  "${updateOrder.id}")
+
+        val locationServiceIntent = Intent(activity, LocationService::class.java)
+        locationServiceIntent.action = LocationService.ACTION_START_UPDATE
+        locationServiceIntent.putExtra("orderId",updateOrder.id)
+        locationServiceIntent.putExtra("url",updateOrder.orderManagementUrl)
+        locationServiceIntent.putExtra("token",updateOrder.authToken)
+
+        startForegroundService(activity, locationServiceIntent)
 
         return true
     }

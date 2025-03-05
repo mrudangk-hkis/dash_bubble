@@ -44,6 +44,7 @@ class Constants {
         const val ENABLE_BOTTOM_SHADOW = "enableBottomShadow"
         const val KEEP_ALIVE_WHEN_APP_EXIT = "keepAliveWhenAppExit"
         const val SOCKET_URL = "socketUrl"
+        const val ORDER_URL = "orderUrl"
         const val USER_TOKEN = "userToken"
         const val USER_ID = "userId"
         const val ORDER_ID = "orderId"

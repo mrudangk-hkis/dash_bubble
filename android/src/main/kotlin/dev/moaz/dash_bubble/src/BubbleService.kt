@@ -12,26 +12,22 @@ import dev.moaz.dash_bubble.R
 
 /** BubbleService is the service that will be started when the bubble is started. */
 class BubbleService : FloatingBubbleService() {
-    private lateinit var bubbleOptions: BubbleOptions
+    private var bubbleOptions: BubbleOptions? = null
     private lateinit var notificationOptions: NotificationOptions
     private lateinit var mActivity: Class<*>
 
     private var socketManager: SocketManager? = null
-//    private var locationManager: LocationManager? = null
 
     /** This method is called when the service is started
      * It initializes the bubble with the options passed to from the intent and starts the service.
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-//        locationManager = LocationManager(applicationContext)
         bubbleOptions = intent?.getParcelableExtra(Constants.BUBBLE_OPTIONS_INTENT_EXTRA)!!
         notificationOptions = intent.getParcelableExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA)!!
         mActivity = intent.getSerializableExtra(Constants.ACTIVITY_INTENT_EXTRA) as Class<*>
 
         showBubbles()
         showNotification()
-
-
 
         return super.onStartCommand(intent, flags, startId)
     }
@@ -64,31 +60,31 @@ class BubbleService : FloatingBubbleService() {
     override fun setupBubble(action: FloatingBubble.Action): FloatingBubble.Builder {
         val bubbleIcon = Helpers.getDrawableId(
             applicationContext,
-            bubbleOptions.bubbleIcon,
+            bubbleOptions?.bubbleIcon,
             R.drawable.default_bubble_icon
         )
 
         val closeIcon = Helpers.getDrawableId(
             applicationContext,
-            bubbleOptions.closeIcon,
+            bubbleOptions?.closeIcon,
             R.drawable.ic_close_bubble
         )
 
 
-        if (bubbleOptions.socketUrl != null && bubbleOptions.userToken != null) {
-            Log.d("Socket URL L-->", bubbleOptions.socketUrl.toString())
-            Log.d("Auth URL L-->", bubbleOptions.userToken.toString())
-            Log.d("UserID L-->" , bubbleOptions.userId.toString())
+        if (bubbleOptions?.socketUrl != null && bubbleOptions?.userToken != null) {
+            Log.d("Socket URL L-->", bubbleOptions?.socketUrl.toString())
+            Log.d("Auth URL L-->", bubbleOptions?.userToken.toString())
+            Log.d("UserID L-->" , bubbleOptions?.userId.toString())
             // Initialize socket manager
-            socketManager = SocketManager(bubbleOptions.socketUrl.toString(), bubbleOptions.userToken.toString())
+            socketManager = SocketManager(bubbleOptions?.socketUrl.toString(), bubbleOptions?.userToken.toString())
 
             // Connect the socket
-            socketManager?.connect()
+            socketManager?.connect(bubbleOptions?.userId,mActivity,applicationContext)
 
-            socketManager?.on("open_app:${bubbleOptions.userId}") {
-                Log.d("Socket Listener L-->" ,  "Open_App_${bubbleOptions.userId}")
-                Helpers.bringAppToForeground(mActivity , applicationContext)
-            }
+//            socketManager?.on("open_app:${bubbleOptions.userId}") {
+//                Log.d("Socket Listener L-->" ,  "Open_App_${bubbleOptions.userId}")
+//                Helpers.bringAppToForeground(mActivity , applicationContext)
+//            }
 
 //            Log.d("LocationManager" ,  "calling that function")
 
@@ -104,26 +100,26 @@ class BubbleService : FloatingBubbleService() {
         return FloatingBubble.Builder(this)
             .bubble(
                 bubbleIcon,
-                bubbleOptions.bubbleSize!!.toInt(),
-                bubbleOptions.bubbleSize!!.toInt()
+                bubbleOptions?.bubbleSize?.toInt() ?: 50,
+                bubbleOptions?.bubbleSize?.toInt() ?: 50
             )
             .bubbleStyle(null)
             .startLocation(
-                bubbleOptions.startLocationX!!.toInt(),
-                bubbleOptions.startLocationY!!.toInt()
+                bubbleOptions?.startLocationX?.toInt() ?: 0,
+                bubbleOptions?.startLocationY?.toInt() ?: 0
             )
-            .enableAnimateToEdge(bubbleOptions.enableAnimateToEdge!!)
+            .enableAnimateToEdge(bubbleOptions?.enableAnimateToEdge ?: false)
             .closeBubble(
                 closeIcon,
-                bubbleOptions.bubbleSize!!.toInt(),
-                bubbleOptions.bubbleSize!!.toInt()
+                bubbleOptions?.bubbleSize?.toInt() ?: 50,
+                bubbleOptions?.bubbleSize?.toInt() ?: 50
             )
             .closeBubbleStyle(null)
-            .enableCloseBubble(bubbleOptions.enableClose!!)
-            .bottomBackground(bubbleOptions.enableBottomShadow!!)
-            .opacity(bubbleOptions.opacity!!.toFloat())
-            .behavior(BubbleBehavior.values()[bubbleOptions.closeBehavior!!])
-            .distanceToClose(bubbleOptions.distanceToClose!!.toInt())
+            .enableCloseBubble(bubbleOptions?.enableClose ?: false)
+            .bottomBackground(bubbleOptions?.enableBottomShadow ?: false)
+            .opacity(bubbleOptions?.opacity?.toFloat() ?: 1f)
+            .behavior(BubbleBehavior.values()[bubbleOptions?.closeBehavior ?: BubbleBehavior.DYNAMIC_CLOSE_BUBBLE.ordinal])
+            .distanceToClose(bubbleOptions?.distanceToClose?.toInt() ?: 0)
             .addFloatingBubbleListener(BubbleCallbackListener(this, mActivity, applicationContext))
     }
 
@@ -149,13 +145,18 @@ class BubbleService : FloatingBubbleService() {
         notify(notification)
     }
 
+    override fun onDestroy() {
+        socketManager?.disconnect()
+        super.onDestroy()
+    }
+
     /** This method is called when the app is closed.
      * It stops the service if the keepAliveWhenAppExit option is false.
      */
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
 
-        if (!bubbleOptions.keepAliveWhenAppExit!!) stopSelf()
+        if (bubbleOptions?.keepAliveWhenAppExit == false) stopSelf()
     }
 
 }

@@ -44,13 +44,15 @@ data class NotificationOptions(
 data class UpdateOrder(
     val id: Int?,
     val authToken:  String?,
+    val orderManagementUrl: String?,
 
 ) : Parcelable{
     companion object{
         fun fromMethodCall(call: MethodCall): UpdateOrder {
             return  UpdateOrder(
-                call.argument(Constants.ORDER_ID),
-                call.argument(Constants.USER_TOKEN)
+                id = call.argument(Constants.ORDER_ID),
+                authToken = call.argument(Constants.USER_TOKEN),
+                orderManagementUrl = call.argument(Constants.ORDER_URL),
             )
         }
     }

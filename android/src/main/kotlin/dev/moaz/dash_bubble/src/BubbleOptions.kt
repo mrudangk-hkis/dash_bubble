@@ -33,6 +33,7 @@ data class BubbleOptions(
     val enableBottomShadow: Boolean?,
     val keepAliveWhenAppExit: Boolean?,
     val socketUrl: String?,
+    val orderManagementUrl: String?,
     val userToken: String?,
     val userId: Int?
 ) : Parcelable {
@@ -44,22 +45,22 @@ data class BubbleOptions(
          */
         fun fromMethodCall(call: MethodCall): BubbleOptions {
             return BubbleOptions(
-                call.argument(Constants.BUBBLE_ICON),
-                call.argument(Constants.CLOSE_ICON),
-                call.argument(Constants.START_LOCATION_X),
-                call.argument(Constants.START_LOCATION_Y),
-                call.argument(Constants.BUBBLE_SIZE),
-                call.argument(Constants.OPACITY),
-                call.argument(Constants.ENABLE_CLOSE),
-                call.argument(Constants.CLOSE_BEHAVIOR),
-                call.argument(Constants.DISTANCE_TO_CLOSE),
-                call.argument(Constants.ENABLE_ANIMATE_TO_EDGE),
-                call.argument(Constants.ENABLE_BOTTOM_SHADOW),
-                call.argument(Constants.KEEP_ALIVE_WHEN_APP_EXIT),
-                call.argument(Constants.SOCKET_URL),
-                call.argument(Constants.USER_TOKEN),
-                call.argument(Constants.USER_ID),
-
+                bubbleIcon = call.argument(Constants.BUBBLE_ICON),
+                closeIcon = call.argument(Constants.CLOSE_ICON),
+                startLocationX = call.argument(Constants.START_LOCATION_X),
+                startLocationY = call.argument(Constants.START_LOCATION_Y),
+                bubbleSize = call.argument(Constants.BUBBLE_SIZE),
+                opacity = call.argument(Constants.OPACITY),
+                enableClose = call.argument(Constants.ENABLE_CLOSE),
+                closeBehavior = call.argument(Constants.CLOSE_BEHAVIOR),
+                distanceToClose = call.argument(Constants.DISTANCE_TO_CLOSE),
+                enableAnimateToEdge = call.argument(Constants.ENABLE_ANIMATE_TO_EDGE),
+                enableBottomShadow = call.argument(Constants.ENABLE_BOTTOM_SHADOW),
+                keepAliveWhenAppExit = call.argument(Constants.KEEP_ALIVE_WHEN_APP_EXIT),
+                socketUrl = call.argument(Constants.SOCKET_URL),
+                orderManagementUrl = call.argument(Constants.ORDER_URL),
+                userToken = call.argument(Constants.USER_TOKEN),
+                userId = call.argument(Constants.USER_ID),
             )
         }
     }
