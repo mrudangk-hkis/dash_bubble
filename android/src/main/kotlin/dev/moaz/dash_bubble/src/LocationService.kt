@@ -157,12 +157,16 @@ class LocationService : Service() {
                 if (location?.hasAccuracy() == true) {
                     logLocation(location)
 
-                    val distance = lastLocation?.distanceTo(location) ?: SIGNIFICANT_DISTANCE
-                    lastLocation = if (distance >= SIGNIFICANT_DISTANCE) {
-                        saveCurrentLocation(location.latitude, location.longitude)
-                        location
-                    } else {
-                        location
+                    lastLocation?.let {
+                        val distance = it.distanceTo(location)
+
+                        Log.d(TAG ,  "Distance $distance")
+                        if(distance >= SIGNIFICANT_DISTANCE) {
+                            saveCurrentLocation(location.latitude, location.longitude)
+                            lastLocation = location
+                        }
+                    } ?: run {
+                        lastLocation = location
                     }
 
                     val intent = Intent("LOCATION_UPDATE").apply {
