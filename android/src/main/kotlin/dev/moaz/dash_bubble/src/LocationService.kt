@@ -166,6 +166,7 @@ class LocationService : Service() {
                             lastLocation = location
                         }
                     } ?: run {
+                        saveCurrentLocation(location.latitude, location.longitude)
                         lastLocation = location
                     }
 
