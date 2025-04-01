@@ -22,7 +22,8 @@ class SocketManager(private val socketUrl: String, private val authToken: String
             options.reconnection = true
             options.reconnectionAttempts = reconnectionAttempts
             options.reconnectionDelay = 10000
-            options.extraHeaders = mapOf("Authorization" to listOf(authToken))
+            options.extraHeaders = mapOf("Authorization" to listOf(authToken),  "deviceType" to listOf("Kotlin"))
+
 
             options.transports = arrayOf("websocket")
             socket = IO.socket(socketUrl, options)
