@@ -22,6 +22,8 @@ class SocketManager(private val socketUrl: String, private val authToken: String
             options.reconnection = true
             options.reconnectionAttempts = reconnectionAttempts
             options.reconnectionDelay = 10000
+            options.timeout = 10000
+
             options.extraHeaders = mapOf("Authorization" to listOf(authToken),  "deviceType" to listOf("Kotlin"))
 
 
