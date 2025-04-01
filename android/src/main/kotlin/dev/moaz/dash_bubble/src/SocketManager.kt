@@ -26,8 +26,11 @@ class SocketManager(private val socketUrl: String, private val authToken: String
 
             options.extraHeaders = mapOf("Authorization" to listOf(authToken),  "deviceType" to listOf("Kotlin"))
 
-
             options.transports = arrayOf("websocket")
+
+            // Ensure previous socket is disconnected before creating a new one
+            socket?.disconnect()
+            socket?.off()
             socket = IO.socket(socketUrl, options)
             socket?.connect()
 
