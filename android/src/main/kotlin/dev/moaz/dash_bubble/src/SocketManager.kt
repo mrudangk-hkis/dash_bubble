@@ -25,7 +25,7 @@ object SocketManager {
 
                 val options = IO.Options().apply {
                     reconnection = true
-                    reconnectionAttempts = 10
+                    reconnectionAttempts = -1
                     reconnectionDelay = 10000
                     timeout = 10000
                     extraHeaders = mapOf("Authorization" to listOf(authToken), "deviceType" to listOf("Kotlin"))
