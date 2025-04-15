@@ -45,6 +45,8 @@ data class UpdateOrder(
     val id: Int?,
     val authToken:  String?,
     val orderManagementUrl: String?,
+    val userId: Int?
+    
 
 ) : Parcelable{
     companion object{
@@ -53,6 +55,7 @@ data class UpdateOrder(
                 id = call.argument(Constants.ORDER_ID),
                 authToken = call.argument(Constants.USER_TOKEN),
                 orderManagementUrl = call.argument(Constants.ORDER_URL),
+                userId = call.argument(Constants.USER_ID),
             )
         }
     }

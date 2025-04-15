@@ -46,6 +46,7 @@ class LocationService : Service() {
     private var previousLocation: Location? = null
     private var lastLocation: Location? = null
     private var currentOrderId: Int? = null
+    private var currentUserId: Int? = null
     private var userToken: String? = null
     private var orderManagementBaseURL : String? = "https://staging-api.drop-it.co/order-management"
     private var notification: NotificationCompat.Builder? = null
@@ -70,6 +71,7 @@ class LocationService : Service() {
                 Log.d(TAG, "onStartCommand: ACTION_START_UPDATE")
                 serviceActive = true
                 currentOrderId = intent.getIntExtra("orderId", -1).takeIf { it != -1 }
+                currentUserId = intent.getIntExtra("userId", -1).takeIf { it != -1 }
                 userToken = intent.getStringExtra("token")
                 orderManagementBaseURL = intent.getStringExtra("url")
                 Log.d("COOL---> ","$orderManagementBaseURL")
@@ -157,18 +159,18 @@ class LocationService : Service() {
                 if (location?.hasAccuracy() == true) {
                     logLocation(location)
 
-                    lastLocation?.let {
-                        val distance = it.distanceTo(location)
-
-                        Log.d(TAG ,  "Distance $distance")
-                        if(distance >= SIGNIFICANT_DISTANCE) {
-                            saveCurrentLocation(location.latitude, location.longitude)
-                            lastLocation = location
-                        }
-                    } ?: run {
-                        saveCurrentLocation(location.latitude, location.longitude)
-                        lastLocation = location
-                    }
+//                    lastLocation?.let {
+//                        val distance = it.distanceTo(location)
+//
+//                        Log.d(TAG ,  "Distance $distance")
+//                        if(distance >= SIGNIFICANT_DISTANCE) {
+//                            saveCurrentLocation(location.latitude, location.longitude)
+//                            lastLocation = location
+//                        }
+//                    } ?: run {
+//                        saveCurrentLocation(location.latitude, location.longitude)
+//                        lastLocation = location
+//                    }
 
                     val intent = Intent("LOCATION_UPDATE").apply {
                         putExtra("extra_location", location)
@@ -190,42 +192,51 @@ class LocationService : Service() {
 
     private fun sendLocationToServer(latitude: Double, longitude: Double, heading: Float, speed: Float) {
         Log.d(TAG, "sendLocationToServer: ")
-        CoroutineScope(Dispatchers.IO).launch {
-            val url = URL("$orderManagementBaseURL/socket/partner/emit")
-            val connection = url.openConnection() as HttpURLConnection
-            try {
-                connection.apply {
-                    requestMethod = "POST"
-                    setRequestProperty("Content-Type", "application/json")
-                    setRequestProperty("Authorization", userToken)
-                    doOutput = true
-                }
-
-                val jsonObject = JSONObject().apply {
-                    put("eventName", "location_from_partner")
-                    put("eventData", JSONObject().apply {
+        SocketManager.emit("location_from_partner",JSONObject().apply {
                         put("latitude", latitude)
                         put("longitude", longitude)
                         put("heading", heading)
                         put("speed", speed * 1000) // Convert to consistent units
                         currentOrderId?.let { put("orderId", it) }
-                    })
-                }
-
-                Log.d("Json Object", "json $jsonObject")
-                connection.outputStream.write(jsonObject.toString().toByteArray())
-                connection.connect()
-
-                val responseCode = connection.responseCode
-                withContext(Dispatchers.Main) {
-                    Log.d(TAG, "Response Code: $responseCode")
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error sending location data: ${e.message}")
-            } finally {
-                connection.disconnect()
-            }
-        }
+            put("partner_id",currentUserId)
+                    }
+        )
+//        CoroutineScope(Dispatchers.IO).launch {
+//            val url = URL("$orderManagementBaseURL/socket/partner/emit")
+//            val connection = url.openConnection() as HttpURLConnection
+//            try {
+//                connection.apply {
+//                    requestMethod = "POST"
+//                    setRequestProperty("Content-Type", "application/json")
+//                    setRequestProperty("Authorization", userToken)
+//                    doOutput = true
+//                }
+//
+//                val jsonObject = JSONObject().apply {
+//                    put("eventName", "location_from_partner")
+//                    put("eventData", JSONObject().apply {
+//                        put("latitude", latitude)
+//                        put("longitude", longitude)
+//                        put("heading", heading)
+//                        put("speed", speed * 1000) // Convert to consistent units
+//                        currentOrderId?.let { put("orderId", it) }
+//                    })
+//                }
+//
+//                Log.d("Json Object", "json $jsonObject")
+//                connection.outputStream.write(jsonObject.toString().toByteArray())
+//                connection.connect()
+//
+//                val responseCode = connection.responseCode
+//                withContext(Dispatchers.Main) {
+//                    Log.d(TAG, "Response Code: $responseCode")
+//                }
+//            } catch (e: Exception) {
+//                Log.e(TAG, "Error sending location data: ${e.message}")
+//            } finally {
+//                connection.disconnect()
+//            }
+//        }
     }
 
     private fun saveCurrentLocation(latitude: Double, longitude: Double) {

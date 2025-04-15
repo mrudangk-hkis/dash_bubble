@@ -9,11 +9,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-class SocketManager(private val socketUrl: String, private val authToken: String) {
+object SocketManager {
 
     private var socket: Socket? = null
 
-    fun connect(userId: Int?, mActivity: Class<*>, applicationContext: Context): Socket? {
+    fun connect(socketUrl: String, authToken: String,userId: Int?, mActivity: Class<*>, applicationContext: Context): Socket? {
         try {
             var retry = 0
             val reconnectionAttempts = 10
@@ -56,7 +56,7 @@ class SocketManager(private val socketUrl: String, private val authToken: String
                             this.cancel()
                             return@launch
                         }
-                        connect(userId, mActivity, applicationContext)
+                        connect(socketUrl,authToken,userId, mActivity, applicationContext)
                     }
                 }
             }

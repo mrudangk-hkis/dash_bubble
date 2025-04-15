@@ -152,6 +152,7 @@ class BubbleManager(private val activity: Activity) {
         locationServiceIntent.action = LocationService.ACTION_START_UPDATE
         locationServiceIntent.putExtra("url",bubbleOptions.orderManagementUrl)
         locationServiceIntent.putExtra("token",bubbleOptions.userToken)
+        locationServiceIntent.putExtra("userId",bubbleOptions.userId)
 
         startForegroundService(activity, locationServiceIntent)
 
@@ -186,6 +187,7 @@ class BubbleManager(private val activity: Activity) {
         locationServiceIntent.putExtra("orderId",updateOrder.id)
         locationServiceIntent.putExtra("url",updateOrder.orderManagementUrl)
         locationServiceIntent.putExtra("token",updateOrder.authToken)
+        locationServiceIntent.putExtra("userId",updateOrder.userId)
 
         startForegroundService(activity, locationServiceIntent)
 

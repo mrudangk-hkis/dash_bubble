@@ -14,7 +14,7 @@ import dev.moaz.dash_bubble.R
 class BubbleService : FloatingBubbleService() {
     private var bubbleOptions: BubbleOptions? = null
     private lateinit var notificationOptions: NotificationOptions
-    private lateinit var mActivity: Class<*>
+    private var mActivity: Class<*>? = null
 
     private var socketManager: SocketManager? = null
 
@@ -22,6 +22,7 @@ class BubbleService : FloatingBubbleService() {
      * It initializes the bubble with the options passed to from the intent and starts the service.
      */
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+//        bubbleService = this
         bubbleOptions = intent?.getParcelableExtra(Constants.BUBBLE_OPTIONS_INTENT_EXTRA)!!
         notificationOptions = intent.getParcelableExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA)!!
         mActivity = intent.getSerializableExtra(Constants.ACTIVITY_INTENT_EXTRA) as Class<*>
@@ -76,10 +77,12 @@ class BubbleService : FloatingBubbleService() {
             Log.d("Auth URL L-->", bubbleOptions?.userToken.toString())
             Log.d("UserID L-->" , bubbleOptions?.userId.toString())
             // Initialize socket manager
-            socketManager = SocketManager(bubbleOptions?.socketUrl.toString(), bubbleOptions?.userToken.toString())
+//            socketManager = (bubbleOptions?.socketUrl.toString(), bubbleOptions?.userToken.toString())
 
             // Connect the socket
-            socketManager?.connect(bubbleOptions?.userId,mActivity,applicationContext)
+            mActivity?.let {
+                SocketManager.connect(bubbleOptions?.socketUrl.toString(), bubbleOptions?.userToken.toString(),bubbleOptions?.userId,it,applicationContext)
+            }
 
 //            socketManager?.on("open_app:${bubbleOptions.userId}") {
 //                Log.d("Socket Listener L-->" ,  "Open_App_${bubbleOptions.userId}")
@@ -120,7 +123,11 @@ class BubbleService : FloatingBubbleService() {
             .opacity(bubbleOptions?.opacity?.toFloat() ?: 1f)
             .behavior(BubbleBehavior.values()[bubbleOptions?.closeBehavior ?: BubbleBehavior.DYNAMIC_CLOSE_BUBBLE.ordinal])
             .distanceToClose(bubbleOptions?.distanceToClose?.toInt() ?: 0)
-            .addFloatingBubbleListener(BubbleCallbackListener(this, mActivity, applicationContext))
+            .apply {
+                mActivity?.let {
+                    addFloatingBubbleListener(BubbleCallbackListener(this@BubbleService, it, applicationContext))
+                }
+            }
     }
 
     /** This method defines the notification configuration and shows it. */

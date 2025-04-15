@@ -42,15 +42,20 @@ class UpdateOrder {
   final int? id;
   final String? userToken;
   final String? orderManagementBaseURL;
+  final int? userId;
 
   UpdateOrder(
-      {this.id, required this.userToken, required this.orderManagementBaseURL});
+      {this.id,
+      required this.userToken,
+      required this.orderManagementBaseURL,
+      required this.userId});
 
   Map<String, dynamic> toMap() {
     return {
       'orderId': id,
       'userToken': userToken,
-      "orderUrl": orderManagementBaseURL
+      "orderUrl": orderManagementBaseURL,
+      "userId": userId
     };
   }
 }
