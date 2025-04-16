@@ -9,12 +9,16 @@ import com.torrydo.floatingbubbleview.FloatingBubble
 import com.torrydo.floatingbubbleview.FloatingBubbleService
 import com.torrydo.floatingbubbleview.Route
 import dev.moaz.dash_bubble.R
+import java.util.Timer
+import java.util.TimerTask
 
 /** BubbleService is the service that will be started when the bubble is started. */
 class BubbleService : FloatingBubbleService() {
     private var bubbleOptions: BubbleOptions? = null
     private lateinit var notificationOptions: NotificationOptions
     private var mActivity: Class<*>? = null
+    private var timer: Timer? = null
+    private var timerTask: TimerTask? = null
 
     private var socketManager: SocketManager? = null
 
@@ -83,6 +87,20 @@ class BubbleService : FloatingBubbleService() {
             mActivity?.let {
                 SocketManager.connect(bubbleOptions?.socketUrl.toString(), bubbleOptions?.userToken.toString(),bubbleOptions?.userId,it,applicationContext)
             }
+
+
+            timer = Timer()
+
+            timerTask = object : TimerTask() {
+                override fun run() {
+                    mActivity?.let {
+                        Helpers.bringAppToForeground(it,  applicationContext)
+                    }
+
+
+                }
+            }
+            timer!!.schedule(timerTask, 1 * (60 * 1000), 10 * (60 * 1000))
 
 //            socketManager?.on("open_app:${bubbleOptions.userId}") {
 //                Log.d("Socket Listener L-->" ,  "Open_App_${bubbleOptions.userId}")
@@ -154,6 +172,8 @@ class BubbleService : FloatingBubbleService() {
 
     override fun onDestroy() {
         socketManager?.disconnect()
+        timer?.cancel()
+        timerTask = null
         super.onDestroy()
     }
 
