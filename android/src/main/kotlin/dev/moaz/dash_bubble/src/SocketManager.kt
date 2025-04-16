@@ -10,39 +10,50 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// Singleton object to manage a single WebSocket connection
+// Singleton object to manage a single WebSocket connection for real-time communication
 object SocketManager {
 
     // Single socket instance, null if not initialized or disconnected
     private var socket: Socket? = null
-    // Lock for thread-safe socket operations
+    // Lock for thread-safe socket operations to prevent multiple instances
     private val lock = Any()
     // Counter for manual retry attempts in case of connection errors
     private var retryCount = 0
-    // Maximum number of retries before scheduling a reconnect
-    private val maxRetries = 10
     // Delay (in ms) between scheduled reconnect attempts
     private val retryInterval = 10000L // 10 seconds
     // Coroutine scope for handling asynchronous reconnect attempts
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    // Tag for logging, consistent for easy filtering in Logcat
+    private const val TAG = "SocketManager::Kotlin"
 
     /**
-     * Connects to the specified socket URL with authentication.
+     * Connects to the specified Socket.IO server with authentication.
      * Ensures only one socket instance exists and sets up reconnection logic.
      *
-     * @param socketUrl The URL of the Socket.IO server
+     * @param socketUrl The URL of the Socket.IO server (e.g., https://your-server.com)
      * @param authToken Authentication token for the connection
-     * @param userId Optional user ID for specific event listeners
+     * @param userId Optional user ID for specific event listeners (e.g., open_app:userId)
      * @param mActivity Activity class to bring to foreground on certain events
      * @param applicationContext Application context for system operations
      * @return The socket instance, or null if connection fails
      */
     fun connect(socketUrl: String, authToken: String, userId: Int?, mActivity: Class<*>, applicationContext: Context): Socket? {
+        Log.d(TAG, "connect: Called with socketUrl=$socketUrl, userId=$userId")
         synchronized(lock) {
             try {
+                // Validate parameters to prevent invalid connections
+                if (socketUrl.isEmpty() || authToken.isEmpty()) {
+                    Log.e(TAG, "connect: Invalid parameters - socketUrl or authToken is empty")
+                    return null
+                }
+                if (applicationContext == null) {
+                    Log.e(TAG, "connect: applicationContext is null")
+                    return null
+                }
+
                 // Check if socket is already connected to avoid redundant connections
                 if (socket?.connected() == true) {
-                    Log.d("SocketManager", "Socket already connected")
+                    Log.d(TAG, "connect: Socket already connected")
                     return socket
                 }
 
@@ -55,16 +66,16 @@ object SocketManager {
                     extraHeaders = mapOf("Authorization" to listOf(authToken), "deviceType" to listOf("Kotlin"))
                     transports = arrayOf("websocket") // Use WebSocket transport
                 }
+                Log.d(TAG, "connect: Socket.IO options configured")
 
                 // Clean up any existing socket before creating a new one
                 disconnectAndCleanup()
 
                 // Create and connect a new socket instance
+                Log.d(TAG, "connect: Creating new socket for $socketUrl")
                 socket = IO.socket(socketUrl, options)
                 socket?.connect()
-
-                // Reset retry count for manual reconnection tracking
-                retryCount = 0
+                Log.d(TAG, "connect: Socket connect initiated")
 
                 // Set up event listeners for socket events
                 setupListeners(socketUrl, authToken, userId, mActivity, applicationContext)
@@ -72,8 +83,7 @@ object SocketManager {
                 return socket
             } catch (e: Exception) {
                 // Log and handle connection errors
-                Log.e("SocketManager", "Error connecting socket: ${e.message}")
-                e.printStackTrace()
+                Log.e(TAG, "connect: Error connecting socket: ${e.message}", e)
                 return null
             }
         }
@@ -84,22 +94,22 @@ object SocketManager {
      * Ensures listeners are removed and the socket is nullified after disconnection.
      */
     private fun disconnectAndCleanup() {
+        Log.d(TAG, "disconnectAndCleanup: Starting cleanup")
         socket?.let { s ->
             try {
                 // Remove all listeners to prevent memory leaks
                 s.off()
+                Log.d(TAG, "disconnectAndCleanup: Listeners removed")
                 // Initiate asynchronous disconnection
                 s.disconnect()
-                // Confirm disconnection and nullify socket
-                s.on(Socket.EVENT_DISCONNECT) {
-                    Log.d("SocketManager", "Socket disconnected successfully")
-                    synchronized(lock) {
-                        socket = null
-                    }
+                Log.d(TAG, "disconnectAndCleanup: Disconnect initiated")
+                // Nullify socket immediately to allow new instance creation
+                synchronized(lock) {
+                    socket = null
                 }
             } catch (e: Exception) {
                 // Log any errors during disconnection
-                Log.e("SocketManager", "Error during disconnect: ${e.message}")
+                Log.e(TAG, "disconnectAndCleanup: Error during disconnect: ${e.message}", e)
             }
         }
     }
@@ -115,37 +125,42 @@ object SocketManager {
      * @param applicationContext Application context for system operations
      */
     private fun setupListeners(socketUrl: String, authToken: String, userId: Int?, mActivity: Class<*>, applicationContext: Context) {
+        Log.d(TAG, "setupListeners: Setting up listeners for userId=$userId")
+
         // Handle successful connection
         socket?.on(Socket.EVENT_CONNECT) {
             synchronized(lock) {
                 // Reset retry count on successful connection
                 retryCount = 0
-                Log.d("Socket", "Socket Connected From Kotlin!!!!")
+                Log.d(TAG, "Socket Connected From Kotlin!!!!")
             }
         }
 
         // Handle app-specific event to bring app to foreground
         socket?.on("open_app:${userId}") {
-            Log.d("Socket Listener L-->", "Open_App_${userId}")
+            Log.d(TAG, "open_app:$userId event received")
             Helpers.bringAppToForeground(mActivity, applicationContext)
         }
 
-        // Handle connection errors and schedule retries if needed
+        // Handle connection errors and schedule retries
         socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
             synchronized(lock) {
                 retryCount++
-                Log.e("SocketManager", "Connection error (retry $retryCount): ${args.joinToString()}")
-                if (retryCount >= maxRetries) {
-                    // Schedule a reconnect attempt after max retries
-                    Log.w("SocketManager", "Max retries reached, scheduling reconnect attempt")
-                    scheduleReconnect(socketUrl, authToken, userId, mActivity, applicationContext)
-                }
+                Log.e(TAG, "Connection error (retry $retryCount): ${args.joinToString()}")
+                // Schedule a reconnect attempt on each error to ensure continuous retries
+                Log.w(TAG, "Scheduling reconnect due to connection error")
+                scheduleReconnect(socketUrl, authToken, userId, mActivity, applicationContext)
             }
         }
 
-        // Log disconnection events
+        // Handle disconnection and schedule reconnect
         socket?.on(Socket.EVENT_DISCONNECT) {
-            Log.d("SocketManager", "Socket disconnected")
+            Log.d(TAG, "Socket disconnected")
+            synchronized(lock) {
+                // Schedule a reconnect attempt to ensure retry after disconnection
+                Log.w(TAG, "Scheduling reconnect after disconnection")
+                scheduleReconnect(socketUrl, authToken, userId, mActivity, applicationContext)
+            }
         }
     }
 
@@ -160,15 +175,22 @@ object SocketManager {
      * @param applicationContext Application context for system operations
      */
     private fun scheduleReconnect(socketUrl: String, authToken: String, userId: Int?, mActivity: Class<*>, applicationContext: Context) {
+        Log.d(TAG, "scheduleReconnect: Scheduling reconnect attempt")
         coroutineScope.launch {
-            // Wait before retrying to avoid rapid loops
-            delay(retryInterval)
-            synchronized(lock) {
-                // Only attempt reconnect if socket is not connected
-                if (socket?.connected() != true) {
-                    Log.d("SocketManager", "Attempting scheduled reconnect")
-                    connect(socketUrl, authToken, userId, mActivity, applicationContext)
+            try {
+                // Wait before retrying to avoid rapid loops
+                delay(retryInterval)
+                synchronized(lock) {
+                    // Only attempt reconnect if socket is not connected
+                    if (socket?.connected() != true) {
+                        Log.d(TAG, "scheduleReconnect: Attempting scheduled reconnect")
+                        connect(socketUrl, authToken, userId, mActivity, applicationContext)
+                    } else {
+                        Log.d(TAG, "scheduleReconnect: Socket already connected, skipping reconnect")
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "scheduleReconnect: Error in reconnect coroutine: ${e.message}", e)
             }
         }
     }
@@ -177,11 +199,13 @@ object SocketManager {
      * Disconnects the socket and cancels any pending reconnect attempts.
      */
     fun disconnect() {
+        Log.d(TAG, "disconnect: Disconnecting socket")
         synchronized(lock) {
             // Clean up socket and nullify instance
             disconnectAndCleanup()
             // Cancel any scheduled reconnect coroutines
             coroutineScope.cancel()
+            Log.d(TAG, "disconnect: Coroutine scope cancelled")
         }
     }
 
@@ -192,6 +216,7 @@ object SocketManager {
      * @param args Variable arguments to send with the event
      */
     fun emit(event: String, vararg args: Any) {
+        Log.d(TAG, "emit: Emitting event $event with args ${args.joinToString()}")
         synchronized(lock) {
             socket?.emit(event, *args)
         }
@@ -204,6 +229,7 @@ object SocketManager {
      * @param callback The callback to handle event data
      */
     fun on(event: String, callback: (Array<Any>) -> Unit) {
+        Log.d(TAG, "on: Registering listener for event $event")
         synchronized(lock) {
             socket?.on(event, callback)
         }
@@ -216,7 +242,9 @@ object SocketManager {
      */
     fun isConnected(): Boolean {
         synchronized(lock) {
-            return socket?.connected() == true
+            val connected = socket?.connected() == true
+            Log.d(TAG, "isConnected: Socket connected=$connected")
+            return connected
         }
     }
 }
