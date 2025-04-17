@@ -95,18 +95,18 @@ class BubbleService : FloatingBubbleService() {
             }
 
 
-            timer = Timer()
+            // timer = Timer()
 
-            timerTask = object : TimerTask() {
-                override fun run() {
-                    mActivity?.let {
-                        Helpers.bringAppToForeground(it, applicationContext)
-                    }
+            // timerTask = object : TimerTask() {
+            //     override fun run() {
+            //         mActivity?.let {
+            //             Helpers.bringAppToForeground(it, applicationContext)
+            //         }
 
 
-                }
-            }
-            timer!!.schedule(timerTask, 1 * (60 * 1000), 10 * (60 * 1000))
+            //     }
+            // }
+            // timer!!.schedule(timerTask, 1 * (60 * 1000), 10 * (60 * 1000))
 
 
         };

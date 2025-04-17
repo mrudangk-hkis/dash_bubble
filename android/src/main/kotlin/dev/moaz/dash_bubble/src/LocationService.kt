@@ -34,17 +34,15 @@ import java.net.URL
 class LocationService : Service() {
     companion object {
         const val ACTION_START_UPDATE = "action_start_update"
-        const val ACTION_STOP_UPDATE = "action_stop_update"
         private const val TAG = "L-->LocationService"
-        private const val UPDATE_INTERVAL = 6000L // 6 seconds
-        private const val SIGNIFICANT_DISTANCE = 500f // 500 meters
+        private const val UPDATE_INTERVAL = 15000L // 6 seconds
+        private const val FASTEST_INTERVAL = 10000L // 6 seconds
         var serviceActive = false
     }
 
     private var locationCallback: LocationCallback? = null
     private var client: FusedLocationProviderClient? = null
     private var previousLocation: Location? = null
-    private var lastLocation: Location? = null
     private var currentOrderId: Int? = null
     private var currentUserId: Int? = null
     private var userToken: String? = null
@@ -137,7 +135,7 @@ class LocationService : Service() {
 
         val request = LocationRequest.create().apply {
             interval = UPDATE_INTERVAL
-            fastestInterval = UPDATE_INTERVAL
+            fastestInterval = FASTEST_INTERVAL
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
 
@@ -155,23 +153,8 @@ class LocationService : Service() {
             override fun onLocationResult(locationResult: LocationResult) {
                 val location = locationResult.lastLocation
                 Log.d(TAG, "onLocationResult: ${location?.latitude} ${location?.longitude}")
-
                 if (location?.hasAccuracy() == true) {
                     logLocation(location)
-
-//                    lastLocation?.let {
-//                        val distance = it.distanceTo(location)
-//
-//                        Log.d(TAG ,  "Distance $distance")
-//                        if(distance >= SIGNIFICANT_DISTANCE) {
-//                            saveCurrentLocation(location.latitude, location.longitude)
-//                            lastLocation = location
-//                        }
-//                    } ?: run {
-//                        saveCurrentLocation(location.latitude, location.longitude)
-//                        lastLocation = location
-//                    }
-
                     val intent = Intent("LOCATION_UPDATE").apply {
                         putExtra("extra_location", location)
                     }
@@ -201,74 +184,5 @@ class LocationService : Service() {
             put("partner_id",currentUserId)
                     }
         )
-//        CoroutineScope(Dispatchers.IO).launch {
-//            val url = URL("$orderManagementBaseURL/socket/partner/emit")
-//            val connection = url.openConnection() as HttpURLConnection
-//            try {
-//                connection.apply {
-//                    requestMethod = "POST"
-//                    setRequestProperty("Content-Type", "application/json")
-//                    setRequestProperty("Authorization", userToken)
-//                    doOutput = true
-//                }
-//
-//                val jsonObject = JSONObject().apply {
-//                    put("eventName", "location_from_partner")
-//                    put("eventData", JSONObject().apply {
-//                        put("latitude", latitude)
-//                        put("longitude", longitude)
-//                        put("heading", heading)
-//                        put("speed", speed * 1000) // Convert to consistent units
-//                        currentOrderId?.let { put("orderId", it) }
-//                    })
-//                }
-//
-//                Log.d("Json Object", "json $jsonObject")
-//                connection.outputStream.write(jsonObject.toString().toByteArray())
-//                connection.connect()
-//
-//                val responseCode = connection.responseCode
-//                withContext(Dispatchers.Main) {
-//                    Log.d(TAG, "Response Code: $responseCode")
-//                }
-//            } catch (e: Exception) {
-//                Log.e(TAG, "Error sending location data: ${e.message}")
-//            } finally {
-//                connection.disconnect()
-//            }
-//        }
-    }
-
-    private fun saveCurrentLocation(latitude: Double, longitude: Double) {
-        Log.d(TAG, "saveCurrentLocation: ")
-        CoroutineScope(Dispatchers.IO).launch {
-            val url = URL("$orderManagementBaseURL/location/saveCurrentLocation")
-            val connection = url.openConnection() as HttpURLConnection
-            try {
-                connection.apply {
-                    requestMethod = "POST"
-                    setRequestProperty("Content-Type", "application/json")
-                    setRequestProperty("Authorization", userToken)
-                    doOutput = true
-                }
-
-                val jsonObject = JSONObject().apply {
-                    put("latitude", latitude)
-                    put("longitude", longitude)
-                }
-
-                connection.outputStream.write(jsonObject.toString().toByteArray())
-                connection.connect()
-
-                val responseCode = connection.responseCode
-                withContext(Dispatchers.Main) {
-                    Log.d(TAG, "saveCurrentLocation Response Code: $responseCode")
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error saving location data: ${e.message}")
-            } finally {
-                connection.disconnect()
-            }
-        }
     }
 }
