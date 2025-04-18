@@ -9,14 +9,17 @@ import com.torrydo.floatingbubbleview.FloatingBubble
 import com.torrydo.floatingbubbleview.FloatingBubbleService
 import com.torrydo.floatingbubbleview.Route
 import dev.moaz.dash_bubble.R
+import java.util.Timer
+import java.util.TimerTask
 
 /** BubbleService is the service that will be started when the bubble is started. */
 class BubbleService : FloatingBubbleService() {
     private var bubbleOptions: BubbleOptions? = null
     private lateinit var notificationOptions: NotificationOptions
     private var mActivity: Class<*>? = null
+    private var timer: Timer? = null
+    private var timerTask: TimerTask? = null
 
-    private var socketManager: SocketManager? = null
 
     /** This method is called when the service is started
      * It initializes the bubble with the options passed to from the intent and starts the service.
@@ -24,7 +27,8 @@ class BubbleService : FloatingBubbleService() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 //        bubbleService = this
         bubbleOptions = intent?.getParcelableExtra(Constants.BUBBLE_OPTIONS_INTENT_EXTRA)!!
-        notificationOptions = intent.getParcelableExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA)!!
+        notificationOptions =
+            intent.getParcelableExtra(Constants.NOTIFICATION_OPTIONS_INTENT_EXTRA)!!
         mActivity = intent.getSerializableExtra(Constants.ACTIVITY_INTENT_EXTRA) as Class<*>
 
         showBubbles()
@@ -75,27 +79,34 @@ class BubbleService : FloatingBubbleService() {
         if (bubbleOptions?.socketUrl != null && bubbleOptions?.userToken != null) {
             Log.d("Socket URL L-->", bubbleOptions?.socketUrl.toString())
             Log.d("Auth URL L-->", bubbleOptions?.userToken.toString())
-            Log.d("UserID L-->" , bubbleOptions?.userId.toString())
+            Log.d("UserID L-->", bubbleOptions?.userId.toString())
             // Initialize socket manager
-//            socketManager = (bubbleOptions?.socketUrl.toString(), bubbleOptions?.userToken.toString())
+
 
             // Connect the socket
             mActivity?.let {
-                SocketManager.connect(bubbleOptions?.socketUrl.toString(), bubbleOptions?.userToken.toString(),bubbleOptions?.userId,it,applicationContext)
+                SocketManager.connect(
+                    bubbleOptions?.socketUrl.toString(),
+                    bubbleOptions?.userToken.toString(),
+                    bubbleOptions?.userId,
+                    it,
+                    applicationContext
+                )
             }
 
-//            socketManager?.on("open_app:${bubbleOptions.userId}") {
-//                Log.d("Socket Listener L-->" ,  "Open_App_${bubbleOptions.userId}")
-//                Helpers.bringAppToForeground(mActivity , applicationContext)
-//            }
 
-//            Log.d("LocationManager" ,  "calling that function")
+            // timer = Timer()
 
-
-//                locationManager?.startFetchingLocation(null , bubbleOptions.userToken)
-
+            // timerTask = object : TimerTask() {
+            //     override fun run() {
+            //         mActivity?.let {
+            //             Helpers.bringAppToForeground(it, applicationContext)
+            //         }
 
 
+            //     }
+            // }
+            // timer!!.schedule(timerTask, 1 * (60 * 1000), 10 * (60 * 1000))
 
 
         };
@@ -121,11 +132,20 @@ class BubbleService : FloatingBubbleService() {
             .enableCloseBubble(bubbleOptions?.enableClose ?: false)
             .bottomBackground(bubbleOptions?.enableBottomShadow ?: false)
             .opacity(bubbleOptions?.opacity?.toFloat() ?: 1f)
-            .behavior(BubbleBehavior.values()[bubbleOptions?.closeBehavior ?: BubbleBehavior.DYNAMIC_CLOSE_BUBBLE.ordinal])
+            .behavior(
+                BubbleBehavior.values()[bubbleOptions?.closeBehavior
+                    ?: BubbleBehavior.DYNAMIC_CLOSE_BUBBLE.ordinal]
+            )
             .distanceToClose(bubbleOptions?.distanceToClose?.toInt() ?: 0)
             .apply {
                 mActivity?.let {
-                    addFloatingBubbleListener(BubbleCallbackListener(this@BubbleService, it, applicationContext))
+                    addFloatingBubbleListener(
+                        BubbleCallbackListener(
+                            this@BubbleService,
+                            it,
+                            applicationContext
+                        )
+                    )
                 }
             }
     }
@@ -153,7 +173,9 @@ class BubbleService : FloatingBubbleService() {
     }
 
     override fun onDestroy() {
-        socketManager?.disconnect()
+        SocketManager?.disconnect()
+        timer?.cancel()
+        timerTask = null
         super.onDestroy()
     }
 
