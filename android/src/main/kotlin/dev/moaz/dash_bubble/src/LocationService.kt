@@ -23,13 +23,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import dev.moaz.dash_bubble.R
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.net.HttpURLConnection
-import java.net.URL
 
 class LocationService : Service() {
     companion object {
@@ -121,7 +115,7 @@ class LocationService : Service() {
             .setContentTitle("You are live now!")
             .setPriority(IMPORTANCE_LOW)
             .setSmallIcon(R.drawable.default_bubble_icon)
-            .setContentText("Location updating...")
+            .setContentText("Location is in track...")
             .setOnlyAlertOnce(true)
 
         startForeground(111, notification?.build())
